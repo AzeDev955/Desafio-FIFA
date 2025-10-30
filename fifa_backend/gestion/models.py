@@ -32,3 +32,21 @@ class Carta(models.Model):
     regate = models.IntegerField()
     defensa = models.IntegerField()
     fisico = models.IntegerField()
+
+    activa = models.BooleanField(default=True)
+    valoracion_general = models.IntegerField( editable=False, null=False)
+
+    posiciones = [
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+        (5, '5'),
+        (6, '6'),
+        (7, '7'),
+        (8, '8'),
+        (9, '9'),
+    ]
+
+    def __str__(self):
+        return f"{self.nombre}, {self.valoracion_general}"
