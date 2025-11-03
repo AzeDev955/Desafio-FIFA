@@ -8,7 +8,6 @@ from django.shortcuts import render
 from models import Usuario
 from django.http import JsonResponse
 
-# Create your views here.
 #Listar todos los usuarios
 def listar_usuarios(request):
     usuarios = Usuario.objects.all()
@@ -113,3 +112,25 @@ def crear_carta(request):
         return HttpResponseBadRequest(str(e))
     except json.JSONDecodeError:
         return HttpResponseBadRequest("JSON inválido")
+    
+# ------------------ ACTUALIZAR ------------------
+@csrf_exempt
+def actualizar_carta(request, id):
+    if request.method != "PUT":
+        return HttpResponseNotAllowed(['PUT'])
+
+    carta = get_object_or_404(Carta, id=id)
+    data = json.loads(request.body)
+    carta_especifica = getattr(carta, 'cartajugador', getattr(carta, 'cartaportero', None))
+    if not carta_especifica:
+        return HttpResponseBadRequest("Carta sin subtipo válido")
+
+    for campo, valor in data.items():
+        if hasattr(carta_especifica, campo):
+            setattr(carta_especifica, campo, valor)
+    try:
+        carta_especifica.save()
+    except ValueError as e:
+        return HttpResponseBadRequest(str(e))
+
+    return JsonResponse({"message": "Carta actualizada correctamente"})
