@@ -11,7 +11,6 @@ class Usuario(models.Model):
         return f"{self.nombre} {self.apellido}"
 
 
-
 class Equipo(models.Model):
     nombre = models.CharField(max_length=150)
 
@@ -96,7 +95,7 @@ class CartaJugador(Carta):
             raise ValueError("Las cartas de jugador no pueden tener posición 'POR'.")
 
         self.tipo = 'JUG'
-        p = self.PESOS.get(self.posicion)
+        p = self.pesos.get(self.posicion)
         if not p:
             raise ValueError(f"No hay pesos definidos para la posición '{self.posicion}'.")
 
@@ -117,7 +116,7 @@ class CartaPortero(Carta):
     velocidad = models.IntegerField(validators=VAL99)
     colocacion = models.IntegerField(validators=VAL99)
 
-    PESOS = {
+    pesos = {
         'POR': {
             'estirada':   0.22,
             'paradas':    0.22,
@@ -129,16 +128,14 @@ class CartaPortero(Carta):
     }
 
     def save(self, *args, **kwargs):
-        # Coherencia: un GK solo puede ser 'POR'
         if self.posicion != 'POR':
             raise ValueError("Las cartas de portero deben tener posición 'POR'.")
 
         self.tipo = 'POR'
-        p = self.PESOS.get('POR')
+        p = self.pesos.get('POR')
         if not p:
             raise ValueError("No hay pesos definidos para 'POR'.")
 
-        # Asegurar que los pesos suman ~1.0
         if abs(sum(p.values()) - 1.0) > 1e-6:
             raise ValueError(f"Los pesos de 'POR' no suman 1.0: {sum(p.values())}")
 
@@ -151,6 +148,5 @@ class CartaPortero(Carta):
             self.colocacion * p['colocacion']
         )
 
-        # Redondeo y límite 1..99
         self.valoracion_general = max(1, min(99, int(round(media))))
         super().save(*args, **kwargs)
