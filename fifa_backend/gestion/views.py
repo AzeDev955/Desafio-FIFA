@@ -54,6 +54,26 @@ def crear_usuario(request):
     else:
         return JsonResponse({'error': 'Metodo no permitido'}, status=405)
 
+#Actualizar un usuario
+def actualizar_usuario(request, user_id):
+    if request.method == 'PUT' or request.method == 'PATCH':
+        data = json.loads(request.body)
+        try:
+            usuario = Usuario.objects.get(id=user_id)
+            if data.get('nombre'):
+                usuario.nombre = data.get('nombre')
+            if data.get('apellido'):
+                usuario.apellido = data.get('apellido')
+            if data.get('email'):
+                usuario.email = data.get('email')
+            usuario.save()
+            return JsonResponse({
+                'exito': True, 'Usuario con id': f'{usuario.id} actualizado'
+            })
+        except Usuario.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=404)
 #------------------- Cartas ------------------------
 # ------------------ LISTAR TODAS ------------------
 def listar_cartas(request):
