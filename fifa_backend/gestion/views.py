@@ -4,6 +4,12 @@ from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseBadReq
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+from django.shortcuts import render
+from models import Usuario
+from django.http import JsonResponse
+
+# Create your views here.
+#Listar todos los usuarios
 def listar_usuarios(request):
     usuarios = Usuario.objects.all()
     data = []
@@ -16,6 +22,12 @@ def listar_usuarios(request):
         })
     return JsonResponse(data, safe=False)
 
+#Listar un usuario
+
+def
+
+
+#------------------- Cartas ------------------------
 # ------------------ LISTAR TODAS ------------------
 def listar_cartas(request):
     if request.method != "GET":
