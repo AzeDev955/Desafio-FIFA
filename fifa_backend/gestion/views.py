@@ -15,6 +15,7 @@ def listar_usuarios(request):
     data = []
     for usuario in usuarios:
         data.append({
+            'id': usuario.id,
             'nombre': usuario.nombre,
             'apellido': usuario.apellido,
             'email': usuario.email,
@@ -24,7 +25,17 @@ def listar_usuarios(request):
 
 #Listar un usuario
 
-def
+def listar_usuario(request, user_id):
+    usuario = Usuario.objects.get(id=user_id)
+    data = []
+    if usuario:
+        data.append({
+            'id': usuario.id,
+            'nombre': usuario.nombre,
+            'apellido': usuario.apellido,
+            'email': usuario.email,
+        })
+    return JsonResponse(data, safe=False)
 
 
 #------------------- Cartas ------------------------
