@@ -58,3 +58,47 @@ def detalle_carta(request, id):
         "posicion": carta.posicion,
         "valoracion_general": carta.valoracion_general,
     })
+
+# ------------------ CREAR CARTA ------------------
+#Los parametros que vienen con "" al final es porque si no se inserta nada se trata como vacio
+@csrf_exempt
+def crear_carta(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(['POST'])
+    data = json.loads(request.body)
+    tipo = data.get("tipo")
+
+    if tipo == "JUG":
+            carta = CartaJugador(
+                nombre=data["nombre"],
+                pais=data.get("pais", ""),
+                club=data.get("club", ""),
+                liga=data.get("liga", ""),
+                posicion=data["posicion"],
+                ritmo=data["ritmo"],
+                tiro=data["tiro"],
+                pase=data["pase"],
+                regate=data["regate"],
+                defensa=data["defensa"],
+                fisico=data["fisico"],
+            )
+    elif tipo == "POR":
+            carta = CartaPortero(
+                nombre=data["nombre"],
+                pais=data.get("pais", ""),
+                club=data.get("club", ""),
+                liga=data.get("liga", ""),
+                posicion="POR",
+                estirada=data["estirada"],
+                paradas=data["paradas"],
+                saque=data["saque"],
+                reflejos=data["reflejos"],
+                velocidad=data["velocidad"],
+                colocacion=data["colocacion"],
+            )
+    else:
+            return HttpResponseBadRequest("Tipo de carta no válido")
+
+    carta.save()
+    return JsonResponse({"message": "Carta creada", "id": carta.id}, status=201)
+
