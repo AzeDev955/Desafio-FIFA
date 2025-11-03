@@ -36,6 +36,7 @@ def listar_usuario(request, user_id):
         return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
 #Crear un usuario
+@csrf_exempt
 def crear_usuario(request):
     if request.method == 'POST':
         data = json.loads(request.body)
