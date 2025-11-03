@@ -207,11 +207,12 @@ def eliminar_carta(request, id):
 fake = Faker('es_ES')
 
 def asignar_equipo(request,user_id):
+    global num_porteros
     if request.method != "POST":
         return JsonResponse({'error': 'Metodo no permitido'}, status=405)
     else:
         usuario = get_object_or_404(User, id=user_id)
-        if usuario.equipo is not None:
+        if usuario.equipo is None:
             sufijos = ["CF", "United", "FC", "Athletic", "Racing", "Sporting", "Titans", "Rayo", "Franes"]
             nombre_falso = f"{fake.city()} {random.choice(sufijos)}"
             equipo = Equipo.objects.create(nombre=nombre_falso)
@@ -219,7 +220,10 @@ def asignar_equipo(request,user_id):
             usuario.save()
 
             total_jugadores = 0
-
+            num_porteros = 0
+            num_defensas = 0
+            num_centrocampistas = 0
+            num_delanteros = 0
             while total_jugadores < 23 or total_jugadores > 25:
                 num_porteros = random.randint(2,3)
                 num_defensas = random.randint(8,10)
@@ -230,16 +234,28 @@ def asignar_equipo(request,user_id):
                                    num_centrocampistas +
                                    num_delanteros)
 
-            porteros = Carta.objects.filter(posicion='POR')
+            porteros = list(Carta.objects.filter(posicion='POR'))
+            porteros_equipo = random.sample(porteros, num_porteros)
 
             posiciones_defensa = ['DFC', 'LTI', 'LTD']
-            defensas = Carta.objects.filter(posicion__in=posiciones_defensa)
+            defensas = list(Carta.objects.filter(posicion__in=posiciones_defensa))
+            defensas_equipo = random.sample(defensas, num_defensas)
 
             posiciones_centrocampistas = ['MC', 'MI', 'MD']
-            centrocampistas = Carta.objects.filter(posicion__in=posiciones_centrocampistas)
+            centrocampistas = list(Carta.objects.filter(posicion__in=posiciones_centrocampistas))
+            centrocampistas_equipo = random.sample(centrocampistas, num_centrocampistas)
 
             posiciones_delantero = ['DC', 'MP']
-            delanteros = Carta.objects.filter(posicion__in=posiciones_delantero)
+            delanteros = list(Carta.objects.filter(posicion__in=posiciones_delantero))
+            delanteros_equipo = random.sample(delanteros, num_delanteros)
 
+            jugadores_equipo = delanteros_equipo + centrocampistas_equipo + defensas_equipo + porteros_equipo
+            equipo.cartas.add(*jugadores_equipo)
+
+            return JsonResponse({
+                'exito': True,
+                'equipo': equipo.nombre,
+                'id equipo': equipo.id
+                                 })
         else:
             return  JsonResponse({'error': 'Este usuario ya tiene un equipo asignado'}, status=404)
