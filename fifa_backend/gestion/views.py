@@ -56,19 +56,21 @@ def detalle_carta(request, id):
         "nombre": carta.nombre,
         "tipo": carta.tipo,
         "posicion": carta.posicion,
-        "valoracion_general": carta.valoracion_general,
+        "valoracion_general": carta.valoracion_general
     })
 
 # ------------------ CREAR CARTA ------------------
-#Los parametros que vienen con "" al final es porque si no se inserta nada se trata como vacio
+#Los parametros que vienen con "" al final es porque si no se inserta nada (no es null) se trata como vacio
 @csrf_exempt
 def crear_carta(request):
     if request.method != "POST":
         return HttpResponseNotAllowed(['POST'])
-    data = json.loads(request.body)
-    tipo = data.get("tipo")
+    
+    try:
+        data = json.loads(request.body)
+        tipo = data.get("tipo")
 
-    if tipo == "JUG":
+        if tipo == "JUG":
             carta = CartaJugador(
                 nombre=data["nombre"],
                 pais=data.get("pais", ""),
@@ -82,7 +84,7 @@ def crear_carta(request):
                 defensa=data["defensa"],
                 fisico=data["fisico"],
             )
-    elif tipo == "POR":
+        elif tipo == "POR":
             carta = CartaPortero(
                 nombre=data["nombre"],
                 pais=data.get("pais", ""),
@@ -96,9 +98,15 @@ def crear_carta(request):
                 velocidad=data["velocidad"],
                 colocacion=data["colocacion"],
             )
-    else:
+        else:
             return HttpResponseBadRequest("Tipo de carta no válido")
 
-    carta.save()
-    return JsonResponse({"message": "Carta creada", "id": carta.id}, status=201)
-
+        carta.save()
+        return JsonResponse({"message": "Carta creada", "id": carta.id}, status=201)
+    
+    except KeyError as e:
+        return HttpResponseBadRequest(f"Falta campo obligatorio: {e}")
+    except ValueError as e:
+        return HttpResponseBadRequest(str(e))
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("JSON inválido")
