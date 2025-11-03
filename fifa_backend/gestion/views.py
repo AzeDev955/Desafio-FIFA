@@ -1,8 +1,10 @@
+from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404
 from .models import *
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
+import faker as fake
 #-----------------------------Usuarios--------------------------
 #Listar todos los usuarios
 def listar_usuarios(request):
@@ -197,3 +199,17 @@ def eliminar_carta(request, id):
     carta = get_object_or_404(Carta, id=id)
     carta.delete()
     return JsonResponse({"message": "Carta eliminada"})
+
+
+#------------------Equipo--------------------
+def asignar_equipo(request,user_id):
+    if request.method != "POST":
+        return JsonResponse({'error': 'Metodo no permitido'}, status=405)
+    else:
+        usuario = get_object_or_404(User, id=user_id)
+        if usuario.equipo is not None:
+            equipo = Equipo(
+
+            )
+        else:
+            return  JsonResponse({'error': 'Este usuario ya tiene un equipo asignado'}, status=404)
