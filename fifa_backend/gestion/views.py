@@ -1,12 +1,8 @@
 from django.shortcuts import render, get_object_or_404
-from models import *
+from .models import *
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
-
-from django.shortcuts import render
-from models import Usuario
-from django.http import JsonResponse
 
 #Listar todos los usuarios
 def listar_usuarios(request):
