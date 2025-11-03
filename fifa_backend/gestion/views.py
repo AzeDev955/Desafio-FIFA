@@ -35,6 +35,18 @@ def listar_usuario(request, user_id):
     except Usuario.DoesNotExist:
         return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
+#Crear un usuario
+def crear_usuario(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        usuario = Usuario(nombre=data.get('nombre'), apellid=data.get('apellido'), email=data.get('email'))
+        try:
+            usuario.save()
+        usuario.save()
+        return JsonResponse({})
+        else:
+            return JsonResponse({'error': 'Metodo no permitido'}, status=405)
+
 
 #------------------- Cartas ------------------------
 # ------------------ LISTAR TODAS ------------------
