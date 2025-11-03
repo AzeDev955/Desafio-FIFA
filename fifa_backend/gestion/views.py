@@ -39,14 +39,19 @@ def listar_usuario(request, user_id):
 def crear_usuario(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        usuario = Usuario(nombre=data.get('nombre'), apellid=data.get('apellido'), email=data.get('email'))
+        usuario = Usuario(nombre=data.get('nombre'), apellido=data.get('apellido'), email=data.get('email'))
         try:
             usuario.save()
-        usuario.save()
-        return JsonResponse({})
-        else:
-            return JsonResponse({'error': 'Metodo no permitido'}, status=405)
+            return JsonResponse({
+                'exito': True, 'Usuario con id': f'{usuario.id}'
+            })
 
+        except Exception as e:
+            return JsonResponse({
+                'exito': False, 'error': str(e)
+            })
+    else:
+        return JsonResponse({'error': 'Metodo no permitido'}, status=405)
 
 #------------------- Cartas ------------------------
 # ------------------ LISTAR TODAS ------------------
