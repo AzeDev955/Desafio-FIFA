@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseBadReq
 from django.views.decorators.csrf import csrf_exempt
 import json
 from faker import Faker
-
+import random
 
 #-----------------------------Usuarios--------------------------
 #Listar todos los usuarios
@@ -217,5 +217,29 @@ def asignar_equipo(request,user_id):
             equipo = Equipo.objects.create(nombre=nombre_falso)
             usuario.equipo = equipo
             usuario.save()
+
+            total_jugadores = 0
+
+            while total_jugadores < 23 or total_jugadores > 25:
+                num_porteros = random.randint(2,3)
+                num_defensas = random.randint(8,10)
+                num_centrocampistas = random.randint(6,9)
+                num_delanteros = random.randint(5,6)
+                total_jugadores = (num_porteros +
+                                   num_defensas +
+                                   num_centrocampistas +
+                                   num_delanteros)
+
+            porteros = Carta.objects.filter(posicion='POR')
+
+            posiciones_defensa = ['DFC', 'LTI', 'LTD']
+            defensas = Carta.objects.filter(posicion__in=posiciones_defensa)
+
+            posiciones_centrocampistas = ['MC', 'MI', 'MD']
+            centrocampistas = Carta.objects.filter(posicion__in=posiciones_centrocampistas)
+
+            posiciones_delantero = ['DC', 'MP']
+            delanteros = Carta.objects.filter(posicion__in=posiciones_delantero)
+
         else:
             return  JsonResponse({'error': 'Este usuario ya tiene un equipo asignado'}, status=404)
