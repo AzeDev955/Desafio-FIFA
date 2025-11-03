@@ -39,7 +39,7 @@ class Carta(models.Model):
         ('MP',  'Media Punta'),
     ]
 
-    nombre = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100, unique=True)
     pais = models.CharField(max_length=50, blank=True)
     club = models.CharField(max_length=100, blank=True)
     liga = models.CharField(max_length=100, blank=True)
@@ -94,6 +94,11 @@ class CartaJugador(Carta):
         if self.posicion == 'POR':
             raise ValueError("Las cartas de jugador no pueden tener posición 'POR'.")
 
+        for campo in ['ritmo', 'tiro', 'pase', 'regate', 'defensa', 'fisico']:
+            valor = getattr(self, campo)
+            if not 1 <= valor <= 99:
+                raise ValueError(f"{campo} debe estar entre 1 y 99 (valor recibido: {valor})")
+            
         self.tipo = 'JUG'
         p = self.pesos.get(self.posicion)
         if not p:
@@ -131,6 +136,11 @@ class CartaPortero(Carta):
         if self.posicion != 'POR':
             raise ValueError("Las cartas de portero deben tener posición 'POR'.")
 
+        for campo in ['estirada', 'paradas', 'saque', 'reflejos', 'velocidad', 'colocacion']:
+            valor = getattr(self, campo)
+            if not 1 <= valor <= 99:
+                raise ValueError(f"{campo} debe estar entre 1 y 99 (valor recibido: {valor})")
+            
         self.tipo = 'POR'
         p = self.pesos.get('POR')
         if not p:

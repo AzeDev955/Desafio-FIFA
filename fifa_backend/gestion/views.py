@@ -130,3 +130,13 @@ def actualizar_carta(request, id):
         return HttpResponseBadRequest(str(e))
 
     return JsonResponse({"message": "Carta actualizada correctamente"})
+
+# ------------------ ELIMINAR ------------------
+@csrf_exempt
+def eliminar_carta(request, id):
+    if request.method != "DELETE":
+        return HttpResponseNotAllowed(['DELETE'])
+
+    carta = get_object_or_404(Carta, id=id)
+    carta.delete()
+    return JsonResponse({"message": "Carta eliminada"})
