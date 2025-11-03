@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import Q
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Usuario(models.Model):
     nombre = models.CharField(max_length=50)
@@ -6,7 +8,7 @@ class Usuario(models.Model):
     email = models.EmailField(unique=True)
     equipo = models.OneToOneField('Equipo', on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
-        return f"{self.nombre} {self.apellido}}"
+        return f"{self.nombre} {self.apellido}"
 
 
 
@@ -21,32 +23,114 @@ class Equipo(models.Model):
         return f"{self.nombre}"
 
 class Carta(models.Model):
+    TIPO_CHOICES = [
+        ('JUG', 'Jugador de campo'),
+        ('POR', 'Portero'),
+    ]
+
+    POSICION_CHOICES = [
+        ('POR', 'Portero'),
+        ('DFC', 'Defensa Central'),
+        ('LTI', 'Lateral Izquierdo'),
+        ('LTD', 'Lateral Derecho'),
+        ('MC',  'Medio Centro'),
+        ('MI',  'Medio Izquierdo'),
+        ('MD',  'Medio Derecho'),
+        ('DC',  'Delantero Centro'),
+        ('MP',  'Media Punta'),
+    ]
+
     nombre = models.CharField(max_length=100)
     pais = models.CharField(max_length=50, blank=True)
     club = models.CharField(max_length=100, blank=True)
     liga = models.CharField(max_length=100, blank=True)
-
-    ritmo = models.IntegerField()
-    tiro = models.IntegerField()
-    pase = models.IntegerField()
-    regate = models.IntegerField()
-    defensa = models.IntegerField()
-    fisico = models.IntegerField()
-
     activa = models.BooleanField(default=True)
-    valoracion_general = models.IntegerField( editable=False, null=False)
+    tipo = models.CharField(max_length=3, choices=TIPO_CHOICES, editable=False)
+    posicion = models.CharField(max_length=3, choices=POSICION_CHOICES)
 
-    posiciones = [
-        (1, '1'),
-        (2, '2'),
-        (3, '3'),
-        (4, '4'),
-        (5, '5'),
-        (6, '6'),
-        (7, '7'),
-        (8, '8'),
-        (9, '9'),
-    ]
+    valoracion_general = models.IntegerField(
+        editable=False, default=1, validators=VAL99
+    )
+
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-valoracion_general', 'nombre']
+        constraints = [
+            models.CheckConstraint(
+                name='tipo_por_pos_por',
+                check=Q(tipo='POR', posicion='POR') | ~Q(tipo='POR')
+            ),
+            models.CheckConstraint(
+                name='tipo_jug_pos_no_por',
+                check=Q(tipo='JUG') & ~Q(posicion='POR') | ~Q(tipo='JUG')
+            ),
+        ]
 
     def __str__(self):
-        return f"{self.nombre}, {self.valoracion_general}"
+        return f"{self.nombre} · {self.get_posicion_display()} · {self.club} · {self.pais} · {self.valoracion_general}"
+
+
+class CartaJugador(Carta):
+    ritmo = models.IntegerField(validators=VAL99)
+    tiro = models.IntegerField(validators=VAL99)
+    pase = models.IntegerField(validators=VAL99)
+    regate = models.IntegerField(validators=VAL99)
+    defensa = models.IntegerField(validators=VAL99)
+    fisico = models.IntegerField(validators=VAL99)
+
+    pesos = {
+        'DC':  {'ritmo': 0.45, 'tiro': 0.45, 'pase': 0.05, 'regate': 0.05},
+        'MP':  {'ritmo': 0.40, 'tiro': 0.25, 'pase': 0.20, 'regate': 0.15},
+        'MC':  {'ritmo': 0.20, 'tiro': 0.20, 'pase': 0.25, 'regate': 0.25, 'defensa': 0.10},
+        'LTI': {'ritmo': 0.20, 'tiro': 0.10, 'pase': 0.20, 'regate': 0.20, 'defensa': 0.30},
+        'LTD': {'ritmo': 0.20, 'tiro': 0.10, 'pase': 0.20, 'regate': 0.20, 'defensa': 0.30},
+        'DFC': {'ritmo': 0.10, 'tiro': 0.05, 'pase': 0.15, 'regate': 0.10, 'defensa': 0.60},
+        'MI':  {'ritmo': 0.40, 'tiro': 0.25, 'pase': 0.20, 'regate': 0.15},
+        'MD':  {'ritmo': 0.40, 'tiro': 0.25, 'pase': 0.20, 'regate': 0.15},
+    }
+
+    def save(self, *args, **kwargs):
+        if self.posicion == 'POR':
+            raise ValueError("Las cartas de jugador no pueden tener posición 'POR'.")
+
+        self.tipo = 'JUG'
+        p = self.PESOS.get(self.posicion)
+        if not p:
+            raise ValueError(f"No hay pesos definidos para la posición '{self.posicion}'.")
+
+        if abs(sum(p.values()) - 1.0) > 1e-6:
+            raise ValueError(f"Los pesos de '{self.posicion}' no suman 1.0: {sum(p.values())}")
+
+        media = sum(getattr(self, stat) * peso for stat, peso in p.items())
+        self.valoracion_general = max(1, min(99, int(round(media))))
+        super().save(*args, **kwargs)
+
+
+class CartaPortero(Carta):
+    estirada = models.IntegerField(validators=VAL99)
+    paradas = models.IntegerField(validators=VAL99)
+    saque = models.IntegerField(validators=VAL99)
+    reflejos = models.IntegerField(validators=VAL99)
+    velocidad = models.IntegerField(validators=VAL99)
+    colocacion = models.IntegerField(validators=VAL99)
+
+    PESOS = {
+        'POR': {
+            'estirada':   0.22,
+            'paradas':    0.22,
+            'saque':      0.07,
+            'reflejos':   0.22,
+            'velocidad':  0.05,
+            'colocacion': 0.22,
+        }
+    }
+
+    def save(self, *args, **kwargs):
+        if self.posicion != 'POR':
+            raise ValueError("Las cartas de portero deben tener posición 'POR'.")
+        self.tipo = 'POR'
+        ##media = Añadir media de fifa
+        self.valoracion_general = max(1, min(99, int(round(media))))
+        super().save(*args, **kwargs)
