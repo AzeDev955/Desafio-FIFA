@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+VAL99 = [MinValueValidator(1), MaxValueValidator(99)]
 class Usuario(models.Model):
     nombre = models.CharField(max_length=50)
     apellido = models.CharField(max_length=100)
@@ -101,6 +101,7 @@ class CartaJugador(Carta):
             raise ValueError(f"No hay pesos definidos para la posición '{self.posicion}'.")
 
         if abs(sum(p.values()) - 1.0) > 1e-6:
+            ##con esta parte nos aseguramos que si el valor es 0.999999 o 1.0000001 no dara error
             raise ValueError(f"Los pesos de '{self.posicion}' no suman 1.0: {sum(p.values())}")
 
         media = sum(getattr(self, stat) * peso for stat, peso in p.items())
@@ -128,9 +129,28 @@ class CartaPortero(Carta):
     }
 
     def save(self, *args, **kwargs):
+        # Coherencia: un GK solo puede ser 'POR'
         if self.posicion != 'POR':
             raise ValueError("Las cartas de portero deben tener posición 'POR'.")
+
         self.tipo = 'POR'
-        ##media = Añadir media de fifa
+        p = self.PESOS.get('POR')
+        if not p:
+            raise ValueError("No hay pesos definidos para 'POR'.")
+
+        # Asegurar que los pesos suman ~1.0
+        if abs(sum(p.values()) - 1.0) > 1e-6:
+            raise ValueError(f"Los pesos de 'POR' no suman 1.0: {sum(p.values())}")
+
+        media = (
+            self.estirada   * p['estirada']   +
+            self.paradas    * p['paradas']    +
+            self.saque      * p['saque']      +
+            self.reflejos   * p['reflejos']   +
+            self.velocidad  * p['velocidad']  +
+            self.colocacion * p['colocacion']
+        )
+
+        # Redondeo y límite 1..99
         self.valoracion_general = max(1, min(99, int(round(media))))
         super().save(*args, **kwargs)
