@@ -26,16 +26,19 @@ def listar_usuarios(request):
 #Listar un usuario
 
 def listar_usuario(request, user_id):
-    usuario = Usuario.objects.get(id=user_id)
-    data = []
-    if usuario:
-        data.append({
-            'id': usuario.id,
-            'nombre': usuario.nombre,
-            'apellido': usuario.apellido,
-            'email': usuario.email,
-        })
-    return JsonResponse(data, safe=False)
+    try:
+        usuario = Usuario.objects.get(id=user_id)
+        data = []
+        if usuario:
+            data.append({
+                'id': usuario.id,
+                'nombre': usuario.nombre,
+                'apellido': usuario.apellido,
+                'email': usuario.email,
+            })
+        return JsonResponse(data, safe=False)
+    except Usuario.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
 
 #------------------- Cartas ------------------------
