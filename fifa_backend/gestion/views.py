@@ -66,14 +66,9 @@ def listar_cartas(request):
 def detalle_carta(request, id):
     if request.method != "GET":
         return HttpResponseNotAllowed(['GET'])
+
     carta = get_object_or_404(Carta, id=id)
-    return JsonResponse({
-        "id": carta.id,
-        "nombre": carta.nombre,
-        "tipo": carta.tipo,
-        "posicion": carta.posicion,
-        "valoracion_general": carta.valoracion_general
-    })
+    return JsonResponse({"detalle": str(carta)})
 
 # ------------------ CREAR CARTA ------------------
 #Los parametros que vienen con "" al final es porque si no se inserta nada (no es null) se trata como vacio
