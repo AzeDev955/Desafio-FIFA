@@ -6,11 +6,9 @@ from django.http import JsonResponse
 
 def listar_usuarios(request):
     usuarios = Usuario.objects.all()
-    return render(request, 'listar_usuarios.html', {'usuarios': usuarios})
     data = []
     for usuario in usuarios:
         data.append({
-            'id': usuario.id,
             'nombre': usuario.nombre,
             'apellido': usuario.apellido,
             'email': usuario.email,
