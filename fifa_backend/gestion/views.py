@@ -55,6 +55,7 @@ def crear_usuario(request):
         return JsonResponse({'error': 'Metodo no permitido'}, status=405)
 
 #Actualizar un usuario
+@csrf_exempt
 def actualizar_usuario(request, user_id):
     if request.method == 'PUT' or request.method == 'PATCH':
         data = json.loads(request.body)
@@ -74,6 +75,8 @@ def actualizar_usuario(request, user_id):
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=404)
+    else:
+        return JsonResponse({'error': 'Metodo no permitido'}, status=405)
 #------------------- Cartas ------------------------
 # ------------------ LISTAR TODAS ------------------
 def listar_cartas(request):
