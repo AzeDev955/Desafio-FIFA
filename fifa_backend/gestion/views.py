@@ -3,7 +3,7 @@ from .models import *
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
-
+#-----------------------------Usuarios--------------------------
 #Listar todos los usuarios
 def listar_usuarios(request):
     usuarios = Usuario.objects.all()
@@ -188,6 +188,11 @@ def actualizar_carta(request, id):
 def eliminar_carta(request, id):
     if request.method != "DELETE":
         return HttpResponseNotAllowed(['DELETE'])
+    """
+    Se debe poder (CRUD) consultar, guardar, actualizar y borrar cartas,
+     siempre que no estén asociadas a ningún equipo. El borrado de las cartas debe ser lógico,
+     es decir, debe existir un campo para desactivar esa carta y poder ser activada mediante la actualización."
+    """
 
     carta = get_object_or_404(Carta, id=id)
     carta.delete()
