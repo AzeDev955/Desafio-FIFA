@@ -77,6 +77,22 @@ def actualizar_usuario(request, user_id):
             return JsonResponse({'error': str(e)}, status=404)
     else:
         return JsonResponse({'error': 'Metodo no permitido'}, status=405)
+
+#Borrar usuario
+@csrf_exempt
+def borrar_usuario(request, user_id):
+    if request.method == 'DELETE':
+        try:
+            usuario = Usuario.objects.get(id=user_id)
+            usuario.delete()
+            return JsonResponse({
+                'exito': True,
+                'mensaje': 'Usuario borrado correctamente'
+            })
+        except Usuario.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+    else:
+        return JsonResponse({'error': 'Metodo no permitido'}, status=405)
 #------------------- Cartas ------------------------
 # ------------------ LISTAR TODAS ------------------
 def listar_cartas(request):
