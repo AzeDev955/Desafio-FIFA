@@ -1,7 +1,5 @@
 from django.db import models
 from django.db.models import Q
-from django.core.validators import MinValueValidator, MaxValueValidator
-VAL99 = [MinValueValidator(1), MaxValueValidator(99)]
 class Usuario(models.Model):
     nombre = models.CharField(max_length=50)
     apellido = models.CharField(max_length=100)
@@ -46,11 +44,7 @@ class Carta(models.Model):
     activa = models.BooleanField(default=True)
     tipo = models.CharField(max_length=3, choices=TIPO_CHOICES, editable=False)
     posicion = models.CharField(max_length=3, choices=POSICION_CHOICES)
-
-    valoracion_general = models.IntegerField(
-        editable=False, default=1, validators=VAL99
-    )
-
+    valoracion_general = models.IntegerField(editable=False)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
@@ -72,12 +66,12 @@ class Carta(models.Model):
 
 
 class CartaJugador(Carta):
-    ritmo = models.IntegerField(validators=VAL99)
-    tiro = models.IntegerField(validators=VAL99)
-    pase = models.IntegerField(validators=VAL99)
-    regate = models.IntegerField(validators=VAL99)
-    defensa = models.IntegerField(validators=VAL99)
-    fisico = models.IntegerField(validators=VAL99)
+    ritmo = models.IntegerField()
+    tiro = models.IntegerField()
+    pase = models.IntegerField()
+    regate = models.IntegerField()
+    defensa = models.IntegerField()
+    fisico = models.IntegerField()
 
     pesos = {
         'DC':  {'ritmo': 0.45, 'tiro': 0.45, 'pase': 0.05, 'regate': 0.05},
@@ -114,12 +108,12 @@ class CartaJugador(Carta):
 
 
 class CartaPortero(Carta):
-    estirada = models.IntegerField(validators=VAL99)
-    paradas = models.IntegerField(validators=VAL99)
-    saque = models.IntegerField(validators=VAL99)
-    reflejos = models.IntegerField(validators=VAL99)
-    velocidad = models.IntegerField(validators=VAL99)
-    colocacion = models.IntegerField(validators=VAL99)
+    estirada = models.IntegerField()
+    paradas = models.IntegerField()
+    saque = models.IntegerField()
+    reflejos = models.IntegerField()
+    velocidad = models.IntegerField()
+    colocacion = models.IntegerField()
 
     pesos = {
         'POR': {
