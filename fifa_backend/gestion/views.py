@@ -4,7 +4,9 @@ from .models import *
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
-import faker as fake
+from faker import Faker
+
+
 #-----------------------------Usuarios--------------------------
 #Listar todos los usuarios
 def listar_usuarios(request):
@@ -202,14 +204,18 @@ def eliminar_carta(request, id):
 
 
 #------------------Equipo--------------------
+fake = Faker('es_ES')
+
 def asignar_equipo(request,user_id):
     if request.method != "POST":
         return JsonResponse({'error': 'Metodo no permitido'}, status=405)
     else:
         usuario = get_object_or_404(User, id=user_id)
         if usuario.equipo is not None:
-            equipo = Equipo(
-
-            )
+            sufijos = ["CF", "United", "FC", "Athletic", "Racing", "Sporting", "Titans", "Rayo", "Franes"]
+            nombre_falso = f"{fake.city()} {random.choice(sufijos)}"
+            equipo = Equipo.objects.create(nombre=nombre_falso)
+            usuario.equipo = equipo
+            usuario.save()
         else:
             return  JsonResponse({'error': 'Este usuario ya tiene un equipo asignado'}, status=404)
