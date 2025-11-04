@@ -15,7 +15,7 @@ class Command(BaseCommand):
         tipos_posicion = ['POR', 'DEF', 'CEN', 'DEL']
         pesos = [16, 56, 47, 31]  # (Esto es el porcentaje aproximado de tipos de jugadores en cada equipo)
         for _ in range(150):
-            tipo = random.choice(tipos_posicion, weights=pesos, k=1)[0]
+            tipo = random.choices(tipos_posicion, weights=pesos, k=1)[0]
             nombre = fake.name_male()
             pais = fake.country()
             club = f"{fake.city()} {random.choice(['FC', 'United', 'CF', 'Rayo','Sporting','Real'])}"
@@ -35,7 +35,7 @@ class Command(BaseCommand):
                         pais=pais,
                         club=club,
                         liga=liga,
-                        tipo='POR',
+                        posicion='POR',
                         estirada=estirada,
                         paradas=paradas,
                         saque=saque,
@@ -113,3 +113,5 @@ class Command(BaseCommand):
                         pase=pase,
                     )
                     pass
+            carta.save()
+            self.stdout.write(f'Carta creada con exito {carta.nombre}')
