@@ -45,7 +45,7 @@ class Command(BaseCommand):
                     )
                     pass
                 case 'DEF':
-                    posicion_defensa = random.choice('DFC','LTI','LTD')
+                    posicion_defensa = random.choice(['DFC','LTI','LTD'])
                     ritmo = random.randint(1, 100)
                     tiro = random.randint(1, 100)
                     pase = random.randint(1, 100)
@@ -68,7 +68,7 @@ class Command(BaseCommand):
                     )
                     pass
                 case 'CEN':
-                    posicion_centrocampista = random.choice('MC', 'MI', 'MD')
+                    posicion_centrocampista = random.choice(['MC', 'MI', 'MD'])
                     ritmo = random.randint(1, 100)
                     tiro = random.randint(1, 100)
                     pase = random.randint(1, 100)
@@ -91,7 +91,7 @@ class Command(BaseCommand):
                     )
                     pass
                 case 'DEL':
-                    posicion_delantero = random.choice('MP', 'DC')
+                    posicion_delantero = random.choice(['MP', 'DC'])
                     ritmo = random.randint(1, 100)
                     tiro = random.randint(50, 100)
                     pase = random.randint(1, 100)
