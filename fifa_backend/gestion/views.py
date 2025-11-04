@@ -211,7 +211,7 @@ def asignar_equipo(request,user_id):
     if request.method != "POST":
         return JsonResponse({'error': 'Metodo no permitido'}, status=405)
     else:
-        usuario = get_object_or_404(User, id=user_id)
+        usuario = get_object_or_404(Usuario, id=user_id)
         if usuario.equipo is None:
             sufijos = ["CF", "United", "FC", "Athletic", "Racing", "Sporting", "Titans", "Rayo", "Franes"]
             nombre_falso = f"{fake.city()} {random.choice(sufijos)}"
@@ -259,3 +259,26 @@ def asignar_equipo(request,user_id):
                                  })
         else:
             return  JsonResponse({'error': 'Este usuario ya tiene un equipo asignado'}, status=404)
+
+
+def listar_equipo(request, user_id):
+    usuario = get_object_or_404(Usuario, id=user_id)
+    if usuario.equipo is None:
+        return JsonResponse({'error': 'Este usuario no tiene asignado un equipo'}, status=404)
+    else:
+        equipo = usuario.equipo
+        cartas = equipo.cartas.all().filter(activa=True)
+        data = []
+        for carta in cartas:
+            data.append({
+                'id': carta.id,
+                'nombre': carta.nombre,
+                'pais': carta.pais,
+                'club': carta.club,
+                'liga': carta.liga,
+                'posicion': carta.posicion,
+                'valoracion': carta.valoracion_general
+            })
+
+        return JsonResponse({'equipo': equipo.nombre, 'cartas': data})
+
