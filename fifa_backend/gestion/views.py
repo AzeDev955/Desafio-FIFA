@@ -205,7 +205,7 @@ def eliminar_carta(request, id):
 
 #------------------Equipo--------------------
 fake = Faker('es_ES')
-
+@csrf_exempt
 def asignar_equipo(request,user_id):
     global num_porteros
     if request.method != "POST":
