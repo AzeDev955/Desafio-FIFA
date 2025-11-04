@@ -1,9 +1,7 @@
 import random
 from faker import Faker
 from django.core.management import BaseCommand
-from gestion.models import *
-
-from fifa_backend.gestion.models import CartaPortero, CartaJugador
+from gestion.models import CartaPortero, CartaJugador
 
 
 class Command(BaseCommand):
@@ -24,12 +22,12 @@ class Command(BaseCommand):
 
             match tipo:
                 case 'POR':
-                    estirada = random.randint(1, 100)
-                    paradas = random.randint(1, 100)
-                    saque = random.randint(1, 100)
-                    reflejos = random.randint(1, 100)
-                    velocidad = random.randint(1, 100)
-                    colocacion = random.randint(1, 100)
+                    estirada = random.randint(1, 99)
+                    paradas = random.randint(1, 99)
+                    saque = random.randint(1, 99)
+                    reflejos = random.randint(1, 99)
+                    velocidad = random.randint(1, 99)
+                    colocacion = random.randint(1, 99)
                     carta = CartaPortero(
                         nombre=nombre,
                         pais=pais,
@@ -46,12 +44,12 @@ class Command(BaseCommand):
                     pass
                 case 'DEF':
                     posicion_defensa = random.choice(['DFC','LTI','LTD'])
-                    ritmo = random.randint(1, 100)
-                    tiro = random.randint(1, 100)
-                    pase = random.randint(1, 100)
-                    regate = random.randint(1, 100)
-                    defensa = random.randint(50, 100)
-                    fisico = random.randint(1, 100)
+                    ritmo = random.randint(1, 99)
+                    tiro = random.randint(1, 99)
+                    pase = random.randint(1, 99)
+                    regate = random.randint(1, 99)
+                    defensa = random.randint(50, 99)
+                    fisico = random.randint(1, 99)
                     carta = CartaJugador(
                         nombre=nombre,
                         pais=pais,
@@ -69,12 +67,12 @@ class Command(BaseCommand):
                     pass
                 case 'CEN':
                     posicion_centrocampista = random.choice(['MC', 'MI', 'MD'])
-                    ritmo = random.randint(1, 100)
-                    tiro = random.randint(1, 100)
-                    pase = random.randint(1, 100)
-                    regate = random.randint(1, 100)
-                    defensa = random.randint(1, 100)
-                    fisico = random.randint(1, 100)
+                    ritmo = random.randint(1, 99)
+                    tiro = random.randint(1, 99)
+                    pase = random.randint(1, 99)
+                    regate = random.randint(1, 99)
+                    defensa = random.randint(1, 99)
+                    fisico = random.randint(1, 99)
                     carta = CartaJugador(
                         nombre=nombre,
                         pais=pais,
@@ -92,12 +90,12 @@ class Command(BaseCommand):
                     pass
                 case 'DEL':
                     posicion_delantero = random.choice(['MP', 'DC'])
-                    ritmo = random.randint(1, 100)
-                    tiro = random.randint(50, 100)
-                    pase = random.randint(1, 100)
-                    regate = random.randint(1, 100)
+                    ritmo = random.randint(1, 99)
+                    tiro = random.randint(50, 99)
+                    pase = random.randint(1, 99)
+                    regate = random.randint(1, 99)
                     defensa = random.randint(1, 50)
-                    fisico = random.randint(1, 100)
+                    fisico = random.randint(1, 99)
                     carta = CartaJugador(
                         nombre=nombre,
                         pais=pais,
