@@ -34,6 +34,7 @@ def listar_usuario(request, user_id):
                 'nombre': usuario.nombre,
                 'apellido': usuario.apellido,
                 'email': usuario.email,
+                'equipo': usuario.equipo.nombre
             })
         return JsonResponse(data, safe=False)
     except Usuario.DoesNotExist:
