@@ -110,7 +110,6 @@ def listar_cartas(request):
 def detalle_carta(request, id):
     if request.method != "GET":
         return HttpResponseNotAllowed(['GET'])
-
     carta = get_object_or_404(Carta, id=id)
     if hasattr(carta, 'cartajugador'):
         carta = carta.cartajugador
@@ -197,17 +196,19 @@ def actualizar_carta(request, id):
 # ------------------ ELIMINAR ------------------
 @csrf_exempt
 def eliminar_carta(request, id):
-    if request.method != "DELETE":
-        return HttpResponseNotAllowed(['DELETE'])
     """
     Se debe poder (CRUD) consultar, guardar, actualizar y borrar cartas,
      siempre que no estén asociadas a ningún equipo. El borrado de las cartas debe ser lógico,
      es decir, debe existir un campo para desactivar esa carta y poder ser activada mediante la actualización."
     """
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
 
     carta = get_object_or_404(Carta, id=id)
-    carta.delete()
-    return JsonResponse({"message": "Carta eliminada"})
+    carta.activa = True
+    carta.save()
+    return redirect('listar_cartas')
+
 
 
 #------------------Equipo--------------------

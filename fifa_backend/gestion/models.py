@@ -13,9 +13,7 @@ class Equipo(models.Model):
     nombre = models.CharField(max_length=150)
 
     cartas = models.ManyToManyField(
-        'Carta',
-        blank=True
-    )
+        'Carta', related_name='equipos', blank=True)
     def __str__(self):
         return f"{self.nombre}"
 
@@ -63,8 +61,6 @@ class Carta(models.Model):
                 check=Q(tipo='JUG') & ~Q(posicion='POR') | ~Q(tipo='JUG')
             ),
         ]
-
-        
 
 class CartaJugador(Carta):
     ritmo = models.IntegerField()
