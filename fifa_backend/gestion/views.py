@@ -18,7 +18,7 @@ def listar_usuarios(request):
             'nombre': usuario.nombre,
             'apellido': usuario.apellido,
             'email': usuario.email,
-            'equipo': usuario.equipo.nombre
+            'equipo': usuario.equipo.nombre if usuario.equipo else None
         })
     return JsonResponse(data, safe=False)
 
@@ -34,7 +34,7 @@ def listar_usuario(request, user_id):
                 'nombre': usuario.nombre,
                 'apellido': usuario.apellido,
                 'email': usuario.email,
-                'equipo': usuario.equipo.nombre
+                'equipo': usuario.equipo.nombre if usuario.equipo else None
             })
         return JsonResponse(data, safe=False)
     except Usuario.DoesNotExist:
@@ -186,6 +186,9 @@ def actualizar_carta(request, id):
     for campo, valor in data.items():
         if hasattr(carta_especifica, campo):
             setattr(carta_especifica, campo, valor)
+        elif hasattr(carta, campo):
+            setattr(carta, campo, valor)
+
     try:
         carta_especifica.save()
     except ValueError as e:
