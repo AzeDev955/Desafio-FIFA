@@ -281,6 +281,10 @@ def listar_equipo(request, user_id):
     else:
         equipo = usuario.equipo
         cartas = equipo.cartas.all().filter(activa=True)
+        porteros = equipo.cartas.all().filter(activa=True, posicion='POR')
+        defensas = equipo.cartas.all().filter(activa=True, posicion__in=['DC', 'LTI', 'LTD'])
+        centrocampistas = equipo.cartas.all().filter(activa=True, posicion__in=['MC', 'MI', 'MD'])
+        delanteros = equipo.cartas.all().filter(activa=True, posicion__in=['DC', 'MP'])
         data = []
         for carta in cartas:
             data.append({
@@ -293,5 +297,13 @@ def listar_equipo(request, user_id):
                 'valoracion': carta.valoracion_general
             })
 
-        return JsonResponse({'equipo': equipo.nombre, 'cartas': data})
+        return JsonResponse({
+            'equipo': equipo.nombre,
+            'cantidad' : len(cartas),
+            'porteros': len(porteros),
+            'defensas': len(defensas),
+            'centrocampistas': len(centrocampistas),
+            'delanteros': len(delanteros),
+            'cartas': data
+        })
 
