@@ -15,4 +15,4 @@ class Command(BaseCommand):
                 email=fake.unique.email(),
             )
             self.stdout.write(f"Usuario creado: {usuario.id} - {usuario.email}")
-        self.stdout.write(self.style.SUCCESS("✅ Creados 30 usuarios correctamente"))
+        self.stdout.write(self.style.SUCCESS("Creados 30 usuarios correctamente"))
