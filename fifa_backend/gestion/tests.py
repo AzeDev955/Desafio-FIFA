@@ -61,3 +61,27 @@ class UsuarioTest(TestCase):
         }
         self.assertEqual(respuesta.json(),jsonRespuestaVista)
 
+    def test_actualizar_usuario(self):
+        usuarioTest = Usuario(
+            nombre='TestNombre',
+            apellido='TestApellido',
+            email='TestCorreo@test.com'
+        )
+        usuarioTest.save()
+        usuarioActualizar = {
+            'nombre' : 'TestNombre2',
+            'apellido' : 'TestApellido2',
+            'email' : 'TestCorreo2@test.com'
+        }
+
+        respuesta = self.client.put(
+            f'/gestion/usuarios/actualizar/{usuarioTest.id}',
+            data=usuarioActualizar,
+            content_type='application/json'
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        usuarioActualizado = Usuario.objects.get(id=usuarioTest.id)
+        self.assertEqual('TestCorreo2@test.com',usuarioActualizado.email)
+
+
+
