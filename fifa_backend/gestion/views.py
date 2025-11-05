@@ -103,16 +103,21 @@ def borrar_usuario(request, user_id):
 def listar_cartas(request):
     if request.method != "GET":
         return HttpResponseNotAllowed(['GET'])
-    data = list(Carta.objects.values())
+    data = list(Carta.objects.filter(activa=True).values())
     return JsonResponse(data, safe=False)
 
 # ------------------ VER DETALLE ------------------
 def detalle_carta(request, id):
     if request.method != "GET":
         return HttpResponseNotAllowed(['GET'])
-
     carta = get_object_or_404(Carta, id=id)
+    if hasattr(carta, 'cartajugador'):
+        carta = carta.cartajugador
+    elif hasattr(carta, 'cartaportero'):
+        carta = carta.cartaportero
+
     return JsonResponse({"detalle": str(carta)})
+
 
 # ------------------ CREAR CARTA ------------------
 #Los parametros que vienen con "" al final es porque si no se inserta nada (no es null) se trata como vacio
@@ -191,17 +196,21 @@ def actualizar_carta(request, id):
 # ------------------ ELIMINAR ------------------
 @csrf_exempt
 def eliminar_carta(request, id):
-    if request.method != "DELETE":
-        return HttpResponseNotAllowed(['DELETE'])
-    """
-    Se debe poder (CRUD) consultar, guardar, actualizar y borrar cartas,
-     siempre que no estén asociadas a ningún equipo. El borrado de las cartas debe ser lógico,
-     es decir, debe existir un campo para desactivar esa carta y poder ser activada mediante la actualización."
-    """
+    try:
+        carta = Carta.objects.get(id=id)
+        carta.activa = False
+        carta.save()
 
-    carta = get_object_or_404(Carta, id=id)
-    carta.delete()
-    return JsonResponse({"message": "Carta eliminada"})
+        return JsonResponse({
+            "mensaje": f"Carta '{carta.nombre}' desactivada correctamente.",
+            "id": carta.id,
+            "activa": carta.activa
+        }, status=200)
+
+    except Carta.DoesNotExist:
+        return JsonResponse({'error': 'Carta no encontrada'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 #------------------Equipo--------------------
