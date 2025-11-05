@@ -112,7 +112,13 @@ def detalle_carta(request, id):
         return HttpResponseNotAllowed(['GET'])
 
     carta = get_object_or_404(Carta, id=id)
+    if hasattr(carta, 'cartajugador'):
+        carta = carta.cartajugador
+    elif hasattr(carta, 'cartaportero'):
+        carta = carta.cartaportero
+
     return JsonResponse({"detalle": str(carta)})
+
 
 # ------------------ CREAR CARTA ------------------
 #Los parametros que vienen con "" al final es porque si no se inserta nada (no es null) se trata como vacio

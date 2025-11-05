@@ -48,6 +48,9 @@ class Carta(models.Model):
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+            return f"{self.nombre} · {self.get_posicion_display()} · {self.club} · {self.pais} · OVR {self.valoracion_general}"
+    
     class Meta:
         ordering = ['-valoracion_general', 'nombre']
         constraints = [
@@ -61,9 +64,7 @@ class Carta(models.Model):
             ),
         ]
 
-    def __str__(self):
-        return f"{self.nombre} · {self.get_posicion_display()} · {self.club} · {self.pais} · {self.valoracion_general}"
-
+        
 
 class CartaJugador(Carta):
     ritmo = models.IntegerField()
@@ -105,6 +106,13 @@ class CartaJugador(Carta):
         media = sum(getattr(self, stat) * peso for stat, peso in p.items())
         self.valoracion_general = max(1, min(99, int(round(media))))
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        base = super().__str__()
+        return (
+            f"{base} · [RIT {self.ritmo} | TIR {self.tiro} | PAS {self.pase} | "
+            f"REG {self.regate} | DEF {self.defensa} | FIS {self.fisico}]"
+            )
 
 
 class CartaPortero(Carta):
@@ -154,3 +162,10 @@ class CartaPortero(Carta):
 
         self.valoracion_general = max(1, min(99, int(round(media))))
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        base = super().__str__()
+        return (
+                f"{base} · [DIV {self.estirada} | HAN {self.paradas} | KIC {self.saque} | "
+                f"REF {self.reflejos} | SPE {self.velocidad} | POS {self.colocacion}]"
+        )
