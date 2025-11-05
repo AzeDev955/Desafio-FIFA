@@ -2,8 +2,6 @@ from django.test import TestCase
 from .models import *
 import faker as fake
 
-from ..fifa_backend.wsgi import application
-
 # Create your tests here.
 fake = fake.Faker('es_ES')
 
@@ -54,8 +52,12 @@ class UsuarioTest(TestCase):
             'email': 'TestCorreo@test.com'
         }
 
-        respuesta = self.client.post('/gestion/usuarios/crear/',data=datosUsuario,content_type='application/json')
+        respuesta = self.client.post('/gestion/usuarios/crear',data=datosUsuario,content_type='application/json')
 
-        self.assertEqual(respuesta.status_code, 201)
-        self.assertEqual(respuesta.content.id,)
+        self.assertEqual(respuesta.status_code, 200)
+        usuarioTest = Usuario.objects.get(email='TestCorreo@test.com')
+        jsonRespuestaVista = {
+            'exito': True, 'Usuario con id': f'{usuarioTest.id}'
+        }
+        self.assertEqual(respuesta.json(),jsonRespuestaVista)
 
