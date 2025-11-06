@@ -373,3 +373,233 @@ class CartaTest(TestCase):
 
         carta_refrescada = Carta.objects.get(id=carta.id)
         self.assertFalse(carta_refrescada.activa)
+---------
+class EquipoTest(TestCase):
+    def test_asignar_equipo(self):
+        usuarioTest = Usuario(
+            nombre='TestNombre',
+            apellido='TestApellido',
+            email='TestCorreo@test.com'
+        )
+        usuarioTest.save()
+        #Creacion de cartas para poder testear la funcion
+
+        for i in range(10):
+            CartaPortero.objects.create(
+                nombre=f"PorteroTest {i}",
+                posicion='POR',
+                estirada=50, paradas=50, saque=50,
+                reflejos=50, velocidad=50, colocacion=50
+            )
+        posiciones_def = ['DFC', 'LTI', 'LTD']
+        posiciones_cen = ['MC', 'MI', 'MD']
+        posiciones_del = ['DC', 'MP']
+
+        for i in range(10):  # Crear 10 Defensas
+            CartaJugador.objects.create(
+                nombre=f"DefensaTest {i}",
+                posicion=random.choice(posiciones_def),
+                ritmo=50, tiro=50, pase=50,
+                regate=50, defensa=50, fisico=50
+            )
+        for i in range(10):  # Crear 10 Centrocampistas
+            CartaJugador.objects.create(
+                nombre=f"CentroTest {i}",
+                posicion=random.choice(posiciones_cen),
+                ritmo=50, tiro=50, pase=50,
+                regate=50, defensa=50, fisico=50
+            )
+        for i in range(10):  # Crear 10 Delanteros
+            CartaJugador.objects.create(
+                nombre=f"DelanteroTest {i}",
+                posicion=random.choice(posiciones_del),
+                ritmo=50, tiro=50, pase=50,
+                regate=50, defensa=50, fisico=50
+            )
+
+        respuesta = self.client.post(f'/gestion/usuarios/{usuarioTest.id}/asignar')
+        self.assertEqual(respuesta.status_code, 200)
+        usuarioTestEquipo = Usuario.objects.get(email='TestCorreo@test.com')
+        respuestaVista = {
+                'exito': True,
+                'equipo': usuarioTestEquipo.equipo.nombre,
+                'id equipo': usuarioTestEquipo.equipo.id
+                                 }
+        self.assertEqual(respuesta.json(),respuestaVista)
+
+    def test_listar_equipo(self):
+        cartaTest = CartaPortero.objects.create(
+            nombre="PorteroTest 1", posicion='POR', estirada=50, paradas=50,
+            saque=50, reflejos=50, velocidad=50, colocacion=50
+        )
+        equipoTest = Equipo.objects.create(nombre="Equipo de Prueba")
+        equipoTest.cartas.add(cartaTest)
+        usuarioTest = Usuario(
+            nombre='TestNombre',
+            apellido='TestApellido',
+            email='TestCorreo@test.com',
+            equipo=equipoTest
+        )
+        usuarioTest.save()
+        respuesta = self.client.get(f'/gestion/usuarios/{usuarioTest.id}/equipo')
+
+        self.assertEqual(respuesta.status_code,200)
+        datos_respuesta = respuesta.json()
+        self.assertEqual(datos_respuesta['equipo'],equipoTest.nombre)
+
+    # ------------------ NUEVOS TESTS PARA asignar_carta_equipo ------------------
+
+    def test_asignar_carta_equipo_anade_jugador_correctamente(self):
+        """Asignar una carta válida a un equipo con hueco debe funcionar."""
+        equipo = Equipo.objects.create(nombre="Equipo Test Asignar Carta")
+        usuario = Usuario.objects.create(
+            nombre='UsuarioEquipo',
+            apellido='Prueba',
+            email='usuario_equipo@test.com',
+            equipo=equipo
+        )
+
+        carta = CartaJugador.objects.create(
+            nombre='Delantero Test',
+            posicion='DC',
+            ritmo=80,
+            tiro=80,
+            pase=80,
+            regate=80,
+            defensa=40,
+            fisico=80
+        )
+
+        respuesta = self.client.post(
+            f'/gestion/usuarios/{usuario.id}/equipo/cartas/{carta.id}/asignar'
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        datos = respuesta.json()
+        self.assertTrue(datos.get('exito'))
+        self.assertEqual(datos.get('total_jugadores'), 1)
+
+        equipo_refrescado = Equipo.objects.get(id=equipo.id)
+        self.assertTrue(equipo_refrescado.cartas.filter(id=carta.id).exists())
+
+    def test_asignar_carta_equipo_no_permite_mas_de_25_jugadores(self):
+        """No se puede añadir una carta si el equipo ya tiene 25 jugadores."""
+        equipo = Equipo.objects.create(nombre="Equipo Lleno")
+        usuario = Usuario.objects.create(
+            nombre='UsuarioLleno',
+            apellido='Prueba',
+            email='usuario_lleno@test.com',
+            equipo=equipo
+        )
+
+        posiciones_def = ['DFC', 'LTI', 'LTD']
+        posiciones_cen = ['MC', 'MI', 'MD']
+        posiciones_del = ['DC', 'MP']
+
+        # 3 porteros
+        for i in range(3):
+            carta = CartaPortero.objects.create(
+                nombre=f"Portero {i}",
+                posicion='POR',
+                estirada=50, paradas=50, saque=50,
+                reflejos=50, velocidad=50, colocacion=50
+            )
+            equipo.cartas.add(carta)
+
+        # 10 defensas
+        for i in range(10):
+            carta = CartaJugador.objects.create(
+                nombre=f"Defensa {i}",
+                posicion=random.choice(posiciones_def),
+                ritmo=50, tiro=50, pase=50,
+                regate=50, defensa=50, fisico=50
+            )
+            equipo.cartas.add(carta)
+
+        # 9 centrocampistas
+        for i in range(9):
+            carta = CartaJugador.objects.create(
+                nombre=f"Centro {i}",
+                posicion=random.choice(posiciones_cen),
+                ritmo=50, tiro=50, pase=50,
+                regate=50, defensa=50, fisico=50
+            )
+            equipo.cartas.add(carta)
+
+        # 3 delanteros (total = 25)
+        for i in range(3):
+            carta = CartaJugador.objects.create(
+                nombre=f"Delantero {i}",
+                posicion=random.choice(posiciones_del),
+                ritmo=50, tiro=50, pase=50,
+                regate=50, defensa=50, fisico=50
+            )
+            equipo.cartas.add(carta)
+
+        self.assertEqual(equipo.cartas.count(), 25)
+
+        nueva_carta = CartaJugador.objects.create(
+            nombre='Delantero Extra',
+            posicion='DC',
+            ritmo=70, tiro=70, pase=70,
+            regate=70, defensa=40, fisico=70
+        )
+
+        respuesta = self.client.post(
+            f'/gestion/usuarios/{usuario.id}/equipo/cartas/{nueva_carta.id}/asignar'
+        )
+
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(
+            datos.get('error'),
+            'El equipo ya tiene el máximo de 25 jugadores'
+        )
+
+        equipo_refrescado = Equipo.objects.get(id=equipo.id)
+        self.assertFalse(
+            equipo_refrescado.cartas.filter(id=nueva_carta.id).exists()
+        )
+
+    def test_asignar_carta_equipo_respeta_limite_porteros(self):
+        """No se pueden añadir más de 3 porteros al equipo."""
+        equipo = Equipo.objects.create(nombre="Equipo Porteros")
+        usuario = Usuario.objects.create(
+            nombre='UsuarioPorteros',
+            apellido='Prueba',
+            email='usuario_porteros@test.com',
+            equipo=equipo
+        )
+
+        # 3 porteros ya en el equipo
+        for i in range(3):
+            carta = CartaPortero.objects.create(
+                nombre=f"Portero {i}",
+                posicion='POR',
+                estirada=60, paradas=60, saque=60,
+                reflejos=60, velocidad=60, colocacion=60
+            )
+            equipo.cartas.add(carta)
+
+        carta_extra = CartaPortero.objects.create(
+            nombre="Portero Extra",
+            posicion='POR',
+            estirada=70, paradas=70, saque=70,
+            reflejos=70, velocidad=70, colocacion=70
+        )
+
+        respuesta = self.client.post(
+            f'/gestion/usuarios/{usuario.id}/equipo/cartas/{carta_extra.id}/asignar'
+        )
+
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(
+            datos.get('error'),
+            'No se pueden añadir más de 3 porteros'
+        )
+
+        equipo_refrescado = Equipo.objects.get(id=equipo.id)
+        self.assertFalse(
+            equipo_refrescado.cartas.filter(id=carta_extra.id).exists()
+        )
