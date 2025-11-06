@@ -174,6 +174,30 @@ class EquipoTest(TestCase):
         datos_respuesta = respuesta.json()
         self.assertEqual(datos_respuesta['equipo'],equipoTest.nombre)
 
+class CartaTest(TestCase):
+    # ---------- MODELOS ----------
 
+    def test_crear_carta_jugador_modelo(self):
+        carta = CartaJugador(
+            nombre='Jugador Test',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='DC',
+            ritmo=80,
+            tiro=90,
+            pase=70,
+            regate=75,
+            defensa=30,
+            fisico=85
+        )
+        carta.save()
 
+        carta_db = CartaJugador.objects.get(nombre='Jugador Test')
 
+        # Se ha guardado bien el tipo y la valoración
+        self.assertEqual(carta_db.tipo, 'JUG')
+        self.assertGreaterEqual(carta_db.valoracion_general, 1)
+        self.assertLessEqual(carta_db.valoracion_general, 99)
+
+    
