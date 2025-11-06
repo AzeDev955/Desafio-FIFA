@@ -373,7 +373,7 @@ class CartaTest(TestCase):
 
         carta_refrescada = Carta.objects.get(id=carta.id)
         self.assertFalse(carta_refrescada.activa)
----------
+        
 class EquipoTest(TestCase):
     def test_asignar_equipo(self):
         usuarioTest = Usuario(
