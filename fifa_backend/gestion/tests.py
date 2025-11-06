@@ -352,3 +352,24 @@ class CartaTest(TestCase):
         # El string de detalle debe contener el nombre
         self.assertIn('DetalleTest', data['detalle'])
 
+    def test_eliminar_carta_pone_activa_false(self):
+        carta = CartaJugador.objects.create(
+            nombre='CartaEliminar',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='DC',
+            ritmo=80,
+            tiro=80,
+            pase=80,
+            regate=80,
+            defensa=30,
+            fisico=80
+        )
+        self.assertTrue(carta.activa)
+
+        respuesta = self.client.post(f'/gestion/cartas/{carta.id}/eliminar/')
+        self.assertEqual(respuesta.status_code, 200)
+
+        carta_refrescada = Carta.objects.get(id=carta.id)
+        self.assertFalse(carta_refrescada.activa)
