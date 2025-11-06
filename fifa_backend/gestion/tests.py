@@ -290,3 +290,42 @@ class CartaTest(TestCase):
         self.assertEqual(carta_db.nombre, "Jugador Test Vista")
         self.assertEqual(carta_db.tipo, "JUG")
 
+    def test_listar_cartas_solo_activas(self):
+        # Creamos una carta activa y otra inactiva
+        activa = CartaJugador.objects.create(
+            nombre='Activa',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='DC',
+            ritmo=80,
+            tiro=80,
+            pase=80,
+            regate=80,
+            defensa=30,
+            fisico=80
+        )
+        inactiva = CartaJugador.objects.create(
+            nombre='Inactiva',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='MC',
+            ritmo=70,
+            tiro=70,
+            pase=70,
+            regate=70,
+            defensa=70,
+            fisico=70
+        )
+        inactiva.activa = False
+        inactiva.save()
+
+        respuesta = self.client.get('/gestion/cartas/')
+        self.assertEqual(respuesta.status_code, 200)
+
+        data = respuesta.json()      # es una lista de dicts (values())
+        # Solo debe haber 1 carta activa
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['nombre'], 'Activa')
+
