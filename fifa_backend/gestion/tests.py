@@ -1,3 +1,4 @@
+import json
 from django.test import TestCase
 from .models import *
 import faker as fake
@@ -328,4 +329,26 @@ class CartaTest(TestCase):
         # Solo debe haber 1 carta activa
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['nombre'], 'Activa')
+
+    def test_detalle_carta(self):
+        carta = CartaJugador.objects.create(
+            nombre='DetalleTest',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='DC',
+            ritmo=80,
+            tiro=80,
+            pase=80,
+            regate=80,
+            defensa=30,
+            fisico=80
+        )
+
+        respuesta = self.client.get(f'/gestion/cartas/{carta.id}/')
+        self.assertEqual(respuesta.status_code, 200)
+
+        data = respuesta.json()
+        # El string de detalle debe contener el nombre
+        self.assertIn('DetalleTest', data['detalle'])
 
