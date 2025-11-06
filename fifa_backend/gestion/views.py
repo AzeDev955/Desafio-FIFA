@@ -307,3 +307,127 @@ def listar_equipo(request, user_id):
             'cartas': data
         })
 
+# ------------------ AÑADIR CARTA A EQUIPO ------------------
+@csrf_exempt
+def asignar_carta_equipo(request, user_id, carta_id):
+    if request.method != "POST":
+        return JsonResponse({'error': 'Metodo no permitido'}, status=405)
+
+    # 1) Usuario y equipo
+    usuario = get_object_or_404(Usuario, id=user_id)
+
+    if usuario.equipo is None:
+        return JsonResponse(
+            {'error': 'Este usuario no tiene asignado un equipo'},
+            status=404
+        )
+
+    equipo = usuario.equipo
+
+    # 2) Carta
+    try:
+        carta = Carta.objects.get(id=carta_id)
+    except Carta.DoesNotExist:
+        return JsonResponse({'error': 'Carta no encontrada'}, status=404)
+
+    if not carta.activa:
+        return JsonResponse(
+            {'error': 'No se puede añadir una carta inactiva al equipo'},
+            status=400
+        )
+
+    # 3) Ya pertenece al equipo
+    if equipo.cartas.filter(id=carta.id).exists():
+        return JsonResponse(
+            {'error': 'Esta carta ya pertenece a este equipo'},
+            status=400
+        )
+
+    # 4) Límite total de jugadores (23–25, pero solo miramos el máximo)
+    total_actual = equipo.cartas.count()
+    if total_actual >= 25:
+        return JsonResponse(
+            {'error': 'El equipo ya tiene el máximo de 25 jugadores'},
+            status=400
+        )
+
+    # 5) Límite por posición (mismo criterio que en asignar_equipo)
+    posiciones_defensa = ['DFC', 'LTI', 'LTD']
+    posiciones_centrocampistas = ['MC', 'MI', 'MD']
+    posiciones_delantero = ['DC', 'MP']
+
+    MAX_PORTEROS = 3
+    MAX_DEFENSAS = 10
+    MAX_CENTROCAMPISTAS = 9
+    MAX_DELANTEROS = 6
+
+    porteros_actuales = equipo.cartas.filter(posicion='POR').count()
+    defensas_actuales = equipo.cartas.filter(
+        posicion__in=posiciones_defensa
+    ).count()
+    centrocampistas_actuales = equipo.cartas.filter(
+        posicion__in=posiciones_centrocampistas
+    ).count()
+    delanteros_actuales = equipo.cartas.filter(
+        posicion__in=posiciones_delantero
+    ).count()
+
+    pos = carta.posicion
+
+    if pos == 'POR' and porteros_actuales >= MAX_PORTEROS:
+        return JsonResponse(
+            {'error': f'No se pueden añadir más de {MAX_PORTEROS} porteros'},
+            status=400
+        )
+
+    if pos in posiciones_defensa and defensas_actuales >= MAX_DEFENSAS:
+        return JsonResponse(
+            {'error': f'No se pueden añadir más de {MAX_DEFENSAS} defensas'},
+            status=400
+        )
+
+    if pos in posiciones_centrocampistas and centrocampistas_actuales >= MAX_CENTROCAMPISTAS:
+        return JsonResponse(
+            {
+                'error': (
+                    f'No se pueden añadir más de '
+                    f'{MAX_CENTROCAMPISTAS} centrocampistas'
+                )
+            },
+            status=400
+        )
+
+    if pos in posiciones_delantero and delanteros_actuales >= MAX_DELANTEROS:
+        return JsonResponse(
+            {'error': f'No se pueden añadir más de {MAX_DELANTEROS} delanteros'},
+            status=400
+        )
+
+    # 6) Si pasa todos los filtros, añadimos la carta
+    equipo.cartas.add(carta)
+
+    # Recalculamos totales después de añadir
+    total_nuevo = equipo.cartas.count()
+    porteros_nuevo = equipo.cartas.filter(posicion='POR').count()
+    defensas_nuevo = equipo.cartas.filter(
+        posicion__in=posiciones_defensa
+    ).count()
+    centrocampistas_nuevo = equipo.cartas.filter(
+        posicion__in=posiciones_centrocampistas
+    ).count()
+    delanteros_nuevo = equipo.cartas.filter(
+        posicion__in=posiciones_delantero
+    ).count()
+
+    return JsonResponse({
+        'exito': True,
+        'mensaje': 'Carta asignada correctamente al equipo',
+        'equipo': equipo.nombre,
+        'id equipo': equipo.id,
+        'id carta': carta.id,
+        'total_jugadores': total_nuevo,
+        'porteros': porteros_nuevo,
+        'defensas': defensas_nuevo,
+        'centrocampistas': centrocampistas_nuevo,
+        'delanteros': delanteros_nuevo
+    }, status=200)
