@@ -200,4 +200,43 @@ class CartaTest(TestCase):
         self.assertGreaterEqual(carta_db.valoracion_general, 1)
         self.assertLessEqual(carta_db.valoracion_general, 99)
 
-    
+    def test_crear_carta_portero_modelo(self):
+        carta = CartaPortero(
+            nombre='Portero Test',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='POR',
+            estirada=80,
+            paradas=85,
+            saque=70,
+            reflejos=90,
+            velocidad=60,
+            colocacion=88
+        )
+        carta.save()
+
+        carta_db = CartaPortero.objects.get(nombre='Portero Test')
+
+        self.assertEqual(carta_db.tipo, 'POR')
+        self.assertGreaterEqual(carta_db.valoracion_general, 1)
+        self.assertLessEqual(carta_db.valoracion_general, 99)
+
+    def test_carta_jugador_valor_invalido_lanza_error(self):
+        # ritmo fuera de rango (1-99) -> debe lanzar ValueError al guardar
+        carta = CartaJugador(
+            nombre='Jugador Malo',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='DC',
+            ritmo=150,
+            tiro=90,
+            pase=70,
+            regate=75,
+            defensa=30,
+            fisico=85
+        )
+        with self.assertRaises(ValueError):
+            carta.save()
+
