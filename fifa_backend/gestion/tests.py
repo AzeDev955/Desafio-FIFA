@@ -240,3 +240,53 @@ class CartaTest(TestCase):
         with self.assertRaises(ValueError):
             carta.save()
 
+    def test_carta_portero_posicion_invalida_lanza_error(self):
+        # Un portero con posición que no sea POR debe romper
+        carta = CartaPortero(
+            nombre='Portero Raro',
+            pais='España',
+            club='Test FC',
+            liga='Liga Test',
+            posicion='DC',
+            estirada=80,
+            paradas=85,
+            saque=70,
+            reflejos=90,
+            velocidad=60,
+            colocacion=88
+        )
+        with self.assertRaises(ValueError):
+            carta.save()
+
+    # ---------- VISTAS ----------
+
+    def test_crear_carta_vista_jugador(self):
+        datos_carta = {
+            "tipo": "JUG",
+            "nombre": "Jugador Test Vista",
+            "pais": "España",
+            "club": "Test FC",
+            "liga": "Liga Test",
+            "posicion": "DC",
+            "ritmo": 80,
+            "tiro": 90,
+            "pase": 70,
+            "regate": 75,
+            "defensa": 30,
+            "fisico": 85
+        }
+
+        respuesta = self.client.post(
+            '/gestion/cartas/crear/',
+            data=json.dumps(datos_carta),
+            content_type='application/json'
+        )
+
+        self.assertEqual(respuesta.status_code, 201)
+        json_resp = respuesta.json()
+        self.assertIn("id", json_resp)
+
+        carta_db = CartaJugador.objects.get(id=json_resp["id"])
+        self.assertEqual(carta_db.nombre, "Jugador Test Vista")
+        self.assertEqual(carta_db.tipo, "JUG")
+
