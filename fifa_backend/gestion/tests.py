@@ -603,3 +603,54 @@ class EquipoTest(TestCase):
         self.assertFalse(
             equipo_refrescado.cartas.filter(id=carta_extra.id).exists()
         )
+
+class EjercicioTest(TestCase):
+    def encontrar_usuario(self):
+        usuarioTest = Usuario(
+            nombre='TestNombre',
+            apellido='TestApellido',
+            email='TestCorreo@test.com'
+        )
+        usuarioTest.save()
+        idTest = usuarioTest.id
+        respuesta = self.client.get(f'/gestion/usuarios/{idTest}/')
+
+        self.assertEqual(respuesta.status_code, 200)
+
+        self.assertIn(b'TestNombre', respuesta.content)
+    
+    def faltan_jugadores(self):
+
+        equipo = Equipo.objects.create(nombre="Equipo Lleno")
+        usuario = Usuario.objects.create(
+            nombre='UsuarioLleno',
+            apellido='Prueba',
+            email='usuario_lleno@test.com',
+            equipo=equipo
+        )
+
+        posiciones_def = ['DFC', 'LTI', 'LTD']
+        posiciones_cen = ['MC', 'MI', 'MD']
+        posiciones_del = ['DC', 'MP']
+
+        for i in range(18):
+            carta = CartaJugador.objects.create(
+                nombre=f"Delantero {i}",
+                posicion=random.choice(posiciones_del,posiciones_def,  posiciones_cen),
+                ritmo=50, tiro=50, pase=50,
+                regate=50, defensa=50, fisico=50
+            )
+            equipo.cartas.add(carta)
+
+        self.assertEqual(equipo.cartas.count(), 18)
+
+        respuesta = self.client.post(
+            f'/gestion/ejercicio/{usuario.id}/'
+        )
+
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(
+            datos.get('error'),
+            'El equipo necesita minimo 20 jugadores activos'
+        )

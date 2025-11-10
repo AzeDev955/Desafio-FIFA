@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from faker import Faker
 import random
+from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Avg
 
 #-----------------------------Usuarios--------------------------
 #Listar todos los usuarios
@@ -431,3 +433,49 @@ def asignar_carta_equipo(request, user_id, carta_id):
         'centrocampistas': centrocampistas_nuevo,
         'delanteros': delanteros_nuevo
     }, status=200)
+
+@csrf_exempt
+def ejercicio(request, user_id):
+    try:
+        usuario = Usuario.objects.get(id=user_id)
+        
+        equipo = usuario.equipo 
+
+        cartas = equipo.cartas.filter(activa=True)
+
+        if not cartas.exists():
+                raise CommandError(
+                    f"El equipo '{equipo.nombre}' del usuario {usuario} no tiene cartas activas."
+                )
+        
+        media = cartas.aggregate(media=Avg("valoracion_general"))["media"]
+        media = int(round(media,0))
+        if media >= 0 & media < 19:
+            funciona="*"
+
+        if media > 20 & media <39:
+            funciona="**"
+        
+        if media > 40 & media <59:
+            funciona="***"
+        
+        if media > 60 & media <79:
+            funciona="****"
+
+        else:
+            funciona="*****"
+
+        data = []
+        if usuario:
+            data.append({
+                    'id': usuario.id,
+                    'nombre': usuario.nombre,
+                    'apellido': usuario.apellido,
+                    'email': usuario.email,
+                    'equipo': usuario.equipo.nombre if usuario.equipo else None,
+                    'media equipo' : funciona
+            })
+
+        return JsonResponse(data, safe=False)
+    except Usuario.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)    
