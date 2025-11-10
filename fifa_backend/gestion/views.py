@@ -431,3 +431,48 @@ def asignar_carta_equipo(request, user_id, carta_id):
         'centrocampistas': centrocampistas_nuevo,
         'delanteros': delanteros_nuevo
     }, status=200)
+
+def calcular_media_equipo(request, user_id):
+    usuario = get_object_or_404(Usuario, id=user_id)
+    if usuario.equipo is None:
+        return JsonResponse({'error': 'Este usuario no tiene asignado un equipo'}, status=404)
+    else:
+         puntuacionTotal = 0
+         cartasActivas = usuario.equipo.cartas.filter(activa=True)
+         cartasActivasPorteros = cartasActivas.filter(posicion='POR')
+         if len(cartasActivas) < 20:
+             return JsonResponse({
+                 'error': 'Este usuario no tiene suficientes jugadores activos en su equipo'},
+                 status=404)
+         elif len(cartasActivasPorteros) < 2:
+             return JsonResponse({
+                 'error': 'Este usuario no tiene suficientes porteros activos en su equipo'},
+                 status=404)
+         else:
+             for carta in cartasActivas:
+                 puntuacionTotal += carta.valoracion_general
+             media = puntuacionTotal / len(cartasActivas)
+             media = round(media, 2)
+             if 100 > media > 1:
+                usuario.equipo.media = media
+                estrellas  = 0
+                if 0 <= media <= 19:
+                    estrellas = 1
+                elif 20 <= media <= 39:
+                    estrellas = 2
+                elif 40 <= media <= 59:
+                    estrellas = 3
+                elif 60 <= media <= 79:
+                    estrellas = 4
+                elif 80 <= media <= 100:
+                    estrellas = 5
+                return JsonResponse({
+                    'media': media,
+                    'numero de jugadores':len(cartasActivas),
+                    'estrellas': estrellas
+                })
+             else:
+                return JsonResponse({
+                    'error': 'Algo ha salido mal'
+                },
+                    status=404)

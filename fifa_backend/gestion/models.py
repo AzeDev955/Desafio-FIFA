@@ -11,7 +11,7 @@ class Usuario(models.Model):
 
 class Equipo(models.Model):
     nombre = models.CharField(max_length=150)
-
+    media = models.IntegerField(null=True, blank=True)
     cartas = models.ManyToManyField(
         'Carta', related_name='equipos', blank=True)
     def __str__(self):
